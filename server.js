@@ -1,5 +1,7 @@
 var express = require('express');
 var bodyParser = require('body-parser');
+var _ = require('underscore');
+
 var app = express();
 var PORT = process.env.PORT || 3000;
 var todos = [];
@@ -27,13 +29,15 @@ app.get('/todos/:id', function (req, res){
 	// req.params.id type is string, need to be converted to int
 
 	var todoId = parseInt(req.params.id, 10);
-	var matchedTodo;
-	// interate over the todos array for the match
-	for (var i = 0; i < todos.length; i++) {
-		if(todos[i].id === todoId){
-			matchedTodo = todos[i];
-		}
-	}
+	var matchedTodo = _.findWhere(todos, {id: todoId});
+
+	// var matchedTodo;
+	// // interate over the todos array for the match
+	// for (var i = 0; i < todos.length; i++) {
+	// 	if(todos[i].id === todoId){
+	// 		matchedTodo = todos[i];
+	// 	}
+	// }
 
 	if (matchedTodo) {
 		res.json(matchedTodo);
@@ -45,8 +49,17 @@ app.get('/todos/:id', function (req, res){
 
 // POST /todos
 app.post('/todos', function (req, res) {
-	var body = req.body;
+	//var body = req.body;  
+	// Use _.pick to only pick description and completed
+	var body = _.pick(req.body, 'description', 'completed');
+
 	//console.log('description: ' + body.description);
+	if (!_.isBoolean(body.completed) || !_.isString(body.description) || body.description.trim().length === 0) { // if the body is some empty spaces
+		return res.status(400).send();
+	}
+
+	// set body.description to be trimed value
+	body.description = body.description.trim();
 
 	// add id field
 	body.id = todoNextId++;
