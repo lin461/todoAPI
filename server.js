@@ -80,6 +80,39 @@ app.delete('/todos/:id', function(req, res){
 		todos = _.without(todos, matchedTodo);
 		res.json(matchedTodo);
 	}
+});
+
+// PUI /todos/:id
+app.put('/todos/:id', function(req,res){
+	var todoId = parseInt(req.params.id, 10);
+	var matchedTodo = _.findWhere(todos, {id: todoId});
+	var body = _.pick(req.body, 'description', 'completed');
+	var validAttributes = {};
+
+	if (!matchedTodo) {
+		res.status(404).json({"error:": "no todo found with given id!"})
+	}
+
+	if (body.hasOwnProperty('completed') && _.isBoolean(body.completed)) {
+		validAttributes.completed = body.completed;
+	} else if (body.hasOwnProperty('completed')) {
+		return res.status(400).send();
+	} else {
+		// never provided attribute, no problem here
+		// this else can be removed
+	}
+
+	if (body.hasOwnProperty('description') && _.isString(body.description) && body.description.trim().length > 0) {
+		validAttributes.description = body.description;
+	} else if (body.hasOwnProperty('description')) {
+		return res.status(400).send();
+	}
+
+
+	// HERE 
+	_.extend(matchedTodo, validAttributes);
+	res.json(matchedTodo); //res.json automatically sends back status 200, when good
+	
 
 	
 });
